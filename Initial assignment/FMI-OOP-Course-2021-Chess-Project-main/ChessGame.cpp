@@ -6,11 +6,14 @@
 #include <Windows.h>
 #include <fstream>
 
+const int WINDOW_WIDTH = 800;
+const int WINDOW_HEIGHT = 700;
+
 int main() {
-	HWND console = GetConsoleWindow();
-	RECT r;
-	GetWindowRect(console, &r);
-	MoveWindow(console, r.left, r.top, 800, 700, TRUE);
-	Gameplay game;
-	game.PlayGame();
+	HWND consoleWindow = GetConsoleWindow();
+	RECT windowRect;
+	GetWindowRect(consoleWindow, &windowRect);
+	MoveWindow(consoleWindow, windowRect.left, windowRect.top, WINDOW_WIDTH, WINDOW_HEIGHT, TRUE);
+	ChessGameLogic gameLogic;
+	gameLogic.playGame();
 }

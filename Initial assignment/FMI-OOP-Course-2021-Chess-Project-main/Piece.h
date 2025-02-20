@@ -4,12 +4,12 @@
 class Piece {
 private:
 	String name;
-	int player;
+	bool isWhite;
 public:
 	Piece();
-	Piece(const String _name, const int _player);
-	void setName(const String _name);
-	void setPlayer(const int _player);
+	Piece(const String name, const bool isWhite);
+	void setName(const String name);
+	void setIsWhite(const bool isWhite);
+	bool isWhitePiece() const;
 	String getName() const; 
-	int getPlayer() const;
 };

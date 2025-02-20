@@ -1,846 +1,531 @@
 #include "Gameplay.h"
 #include <iostream>
 
-Gameplay::Gameplay()
-{
+void ChessGameLogic::makeLowerCase(char& letter) {
+    if ('A' <= letter && letter <= 'Z') {
+        letter = letter - 'A' + 'a';
+    }
 }
 
-Gameplay::~Gameplay()
-{
+bool ChessGameLogic::isColumnNameValid(char columnName) const {
+    return FIRST_COLUMN_NAME <= columnName && columnName <= LAST_COLUMN_NAME;
 }
 
-
-
-bool Gameplay::isMoveCommandValid(String move)
-{
-	//example command: move d2 d4 
-	if (move.getLen() != 10) {
-		std::cout << "Invalid move format!" << std::endl;
-		return false;
-	}
-	else if (move[0] != 'm' || move[1] != 'o' || move[2] != 'v' || move[3] != 'e' || move[4] != ' ' || move[7] != ' ') {
-		std::cout << "Invalid move format!" << std::endl;
-		return false;
-	}
-	else if (move[5] < 'a' || move[5] > 'h' || move[6] < '1' || move[6] > '8' || move[8] < 'a' || move[8] > 'h' || move[9] < '1' || move[9] > '8') {
-		std::cout << "Invalid move format!" << std::endl;
-		return false;
-	}
-	return true;
+bool ChessGameLogic::isRowNameValid(char rowName) const {
+    return FIRST_ROW_NAME <= rowName && rowName <= LAST_ROW_NAME;
 }
 
-bool Gameplay::canMove(String move, Board board[8][8],int currentPlayer) {
+bool ChessGameLogic::isMoveKeywordValid(const String& moveCommand) const {
+    if (moveCommand.getLen() != MOVE_COMMAND_LENGTH) {
+        return false;
+    }
 
-	int fromLetter;
-	int fromNumber;
-	int toLetter;
-	int toNumber;
+    int keywordLength = strnlen_s(COMMAND_FOR_MOVE_KEYWORD, 10);
+    for (int i = 0; i < keywordLength; i++) {
+        if (moveCommand[i] != COMMAND_FOR_MOVE_KEYWORD[i]) {
+            return false;
+        }
+    }
+    return true;
+}
 
-	if (move[5] == 'a') {
-		fromLetter = 0;
-	}
-	else if (move[5] == 'b') {
-		fromLetter = 1;
-	}
-	else if (move[5] == 'c') {
-		fromLetter = 2;
-	}
-	else if (move[5] == 'd') {
-		fromLetter = 3;
-	}
-	else if (move[5] == 'e') {
-		fromLetter = 4;
-	}
-	else if (move[5] == 'f') {
-		fromLetter = 5;
-	}
-	else if (move[5] == 'g') {
-		fromLetter = 6;
-	}
-	else {
-		fromLetter = 7;
-	}
+bool ChessGameLogic::isMoveCoordinatesValid(const String& moveCommand) const {
+    return isColumnNameValid(moveCommand[START_SQUARE_COLUMN_POSITION_IN_COMMAND]) &&
+        isRowNameValid(moveCommand[START_SQUARE_ROW_POSITION_IN_COMMAND]) &&
+        isColumnNameValid(moveCommand[END_SQUARE_COLUMN_POSITION_IN_COMMAND]) &&
+        isRowNameValid(moveCommand[END_SQUARE_ROW_POSITION_IN_COMMAND]);
+}
 
+bool ChessGameLogic::isMoveCommandValid(const String& moveCommand) const {
+    if (!isMoveKeywordValid(moveCommand) || !isMoveCoordinatesValid(moveCommand)) {
+        std::cout << "Invalid move format!" << std::endl;
+        return false;
+    }
+    return true;
+}
 
-	if (move[8] == 'a') {
-		toLetter = 0;
-	}
-	else if (move[8] == 'b') {
-		toLetter = 1;
-	}
-	else if (move[8] == 'c') {
-		toLetter = 2;
-	}
-	else if (move[8] == 'd') {
-		toLetter = 3;
-	}
-	else if (move[8] == 'e') {
-		toLetter = 4;
-	}
-	else if (move[8] == 'f') {
-		toLetter = 5;
-	}
-	else if (move[8] == 'g') {
-		toLetter = 6;
-	}
-	else {
-		toLetter = 7;
-	}
+int ChessGameLogic::getColumnIndexByName(char columnName) const {
+    return columnName - FIRST_COLUMN_NAME;
+}
 
+int ChessGameLogic::getRowIndexByName(char rowName) const {
+    return rowName - FIRST_ROW_NAME;
+}
 
-	if (move[6] == '1') {
-		fromNumber = 0;
-	}
-	else if (move[6] == '2') {
-		fromNumber = 1;
-	}
-	else if (move[6] == '3') {
-		fromNumber = 2;
-	}
-	else if (move[6] == '4') {
-		fromNumber = 3;
-	}
-	else if (move[6] == '5') {
-		fromNumber = 4;
-	}
-	else if (move[6] == '6') {
-		fromNumber = 5;
-	}
-	else if (move[6] == '7') {
-		fromNumber = 6;
-	}
-	else {
-		fromNumber = 7;
-	}
+bool ChessGameLogic::validatePieceToMoveColor(SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool isWhiteToMove, int startSquareColumnIndex,
+    int startSquareRowIndex, int endSquareColumnIndex, int endSquareRowIndex) const {
+    if (board[startSquareRowIndex][startSquareColumnIndex].piece == nullptr) {
+        std::cout << "There's no piece at that location." << std::endl << std::endl;
+        return false;
+    }
 
+    if (board[startSquareRowIndex][startSquareColumnIndex].piece != nullptr &&
+        board[startSquareRowIndex][startSquareColumnIndex].piece->isWhitePiece() != isWhiteToMove) {
+        std::cout << "That's not your piece!" << std::endl << std::endl;
+        return false;
+    }
 
-	if (move[9] == '1') {
-		toNumber = 0;
-	}
-	else if (move[9] == '2') {
-		toNumber = 1;
-	}
-	else if (move[9] == '3') {
-		toNumber = 2;
-	}
-	else if (move[9] == '4') {
-		toNumber = 3;
-	}
-	else if (move[9] == '5') {
-		toNumber = 4;
-	}
-	else if (move[9] == '6') {
-		toNumber = 5;
-	}
-	else if (move[9] == '7') {
-		toNumber = 6;
-	}
-	else {
-		toNumber = 7;
-	}
-	// if the starting position to move a piece is empty
-	if (board[fromNumber][fromLetter].piece == nullptr) {
-		std::cout << "There's no piece at that location." << std::endl << std::endl;
-		return false;
-	}
+    if (board[endSquareRowIndex][endSquareColumnIndex].piece != nullptr &&
+        board[endSquareRowIndex][endSquareColumnIndex].piece->isWhitePiece() == isWhiteToMove) {
+        std::cout << "You already have a piece there." << std::endl;
+        return false;
+    }
+    return true;
+}
 
-		//checks if the piece trying to move is the current player's piece
-	if (board[fromNumber][fromLetter].piece != nullptr && board[fromNumber][fromLetter].piece->getPlayer() != currentPlayer) {
-		std::cout << "That's not your piece!" << std::endl << std::endl;
-		return false;
-	}
+bool ChessGameLogic::isPathClear(int startRow, int startColumn, int endRow, int endColumn, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE]) {
+    int rowStep = (endRow > startRow) ? 1 : (endRow < startRow) ? -1 : 0;
+    int columnStep = (endColumn > startColumn) ? 1 : (endColumn < startColumn) ? -1 : 0;
 
-		//checks if the player has an own piece at the square he is trying to get to
-	if (board[toNumber][toLetter].piece != nullptr && board[toNumber][toLetter].piece->getPlayer() == currentPlayer) {
-		std::cout << "You already have a piece there." << std::endl;
-		return false;
-	}
+    int currentRow = startRow + rowStep;
+    int currentColumn = startColumn + columnStep;
 
-		
-	int rowDifference = fromNumber - toNumber;
-	int columnDifference = fromLetter - toLetter;
-		//player 2 pawn rules
-	if (board[fromNumber][fromLetter].piece->getName() == "Pawn"  && currentPlayer == 2) {
-		if (fromNumber != 1 && rowDifference <= -2) {
-			std::cout << "Pawns can move 2 squares forward only in their first move" << std::endl;
-			return false;	
-		}
-		else if (fromNumber == 1 && rowDifference < -2) {
-			std::cout << "Pawns can't move more than 2 squares forward their first move." << std::endl;
-			return false;
-		}
-		else if (rowDifference >= 0) {
-			std::cout << "Pawns can only move forward" << std::endl;
-			return false;
-		}
-		else if (abs(columnDifference) > 1) {
+    while (currentRow != endRow || currentColumn != endColumn) {
+        if (board[currentRow][currentColumn].piece != nullptr) {
+            return false;
+        }
+        currentRow += rowStep;
+        currentColumn += columnStep;
+    }
+    return true;
+}
 
-			std::cout << "Pawns can't move more than one column forward" << std::endl;
-			return false;
-		}
-		else if (abs(columnDifference) == 1 && rowDifference == -1 && board[toNumber][toLetter].piece == nullptr) {
+bool ChessGameLogic::validateWhitePawnMove(int startRow, int startColumn, int endRow, int endColumn, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool& isKingDead) {
+    int rowDifference = startRow - endRow;
+    int columnDifference = startColumn - endColumn;
 
-			std::cout << "There must be an enemy piece on that position for you to move there." << std::endl;;
-			return false;
-		}
-		else if (rowDifference == -1 && columnDifference == 0 && board[toNumber][toLetter].piece != nullptr && board[toNumber][toLetter].piece->getPlayer() == 1) {
-			std::cout << "An enemy piece is blocking your move!" << std::endl;
-		    return false;
-		}
-		else if (rowDifference == -1 && abs(columnDifference) == 1 && board[toNumber][toLetter].piece->getPlayer() == 1) {
-			std::cout << "You have taken the enemy's " << board[toNumber][toLetter].piece->getName() << "!" << std::endl;
-			if (board[toNumber][toLetter].piece->getName() == "King") {
-				isKingDead = true;
-			}
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;	
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-		else {
-			std::cout << "Move successful!" << std::endl;
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-	}// player 1 pawn rules
-	else if (board[fromNumber][fromLetter].piece->getName() == "Pawn" && currentPlayer == 1) {
-		if (fromNumber != 6 && rowDifference >= 2) {
-			std::cout << "Pawns can move 2 squares forward only in their first move" << std::endl;
-			return false;	
-		}
-		else if (fromNumber == 6 && rowDifference > 2) {
-			std::cout << "Pawns can't move more than 2 squares forward their first move." << std::endl;
-			return false;
-		}
-		else if (rowDifference <= 0) {
-			std::cout << "Pawns can only move forward" << std::endl;
-			return false;
-		}
-		else if (abs(columnDifference) > 1) {
-			std::cout << "Pawns can't move more than one column forward" << std::endl;
-			return false;
-		}
-		else if (abs(columnDifference) == 1 && rowDifference == 1 && board[toNumber][toLetter].piece == nullptr) {
-			std::cout << "There must be an enemy piece on that position for you to move there." << std::endl;
-			return false;
-		}
-		else if (rowDifference == 1 && columnDifference == 0 && board[toNumber][toLetter].piece != nullptr && board[toNumber][toLetter].piece->getPlayer() == 2) {
-			std::cout << "An enemy piece is blocking your move!" << std::endl;
-			return false;
-		}
-		else if (rowDifference == 1 && abs(columnDifference) == 1 && board[toNumber][toLetter].piece->getPlayer() == 2) {
-			std::cout << "You have taken the enemy's " << board[toNumber][toLetter].piece->getName() << "!" << std::endl;
-			if (board[toNumber][toLetter].piece->getName() == "King") {
-				isKingDead = true;
-			}
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;	
-			board[fromNumber][fromLetter].piece = nullptr;
-		    return true;
-		}
-		else {
-			std::cout << "Move successful!" << std::endl;
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-	}
-	else if (board[fromNumber][fromLetter].piece->getName() == "King") {
-		if (abs(rowDifference) > 1 || abs(columnDifference) > 1) {
-			std::cout << "Kings may only move one square" << std::endl;
-			return false;
-		}
-		if (board[toNumber][toLetter].piece != nullptr && board[toNumber][toLetter].piece->getPlayer() != currentPlayer) {
-			std::cout << "You have taken the enemy's " << board[toNumber][toLetter].piece->getName() << "!" << std::endl;
-			if (board[toNumber][toLetter].piece->getName() == "King") {
-				isKingDead = true;
-			}
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;	
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-		else {
-			std::cout << "Move successful!" << std::endl;
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-	}
-	else if (board[fromNumber][fromLetter].piece->getName() == "Queen") {
-		if (abs(rowDifference) != abs(columnDifference) && rowDifference != 0 && columnDifference != 0) {
-			std::cout << "Queens can move like rooks and bishops only" << std::endl;
-			return false;
-		}
-		if (rowDifference > 0 && columnDifference > 0) {
-			for (int i = fromNumber - 1; i > toNumber; i--) {
-				int a = fromLetter;
-				for (a; a > toLetter; a--) {
-					a--;
-					if (board[i][a].piece != nullptr) {
-						std::cout << "There's a piece blocking your move!" << std::endl;
-						return false;
-					}
-					break;
-				}
-			}
-		}
-		else if (rowDifference < 0 && columnDifference < 0) {
-			int a = fromLetter;
-			for (int i = fromNumber + 1; i < toNumber; i++) {
-				for (a; a < toLetter; a++) {
-					a++;
-					if (board[i][a].piece != nullptr) {
-						std::cout << "There's a piece blocking your move!" << std::endl;
-						return false;
-					}
-					break;
-				}
-			}
-		}
-		else if (rowDifference > 0 && columnDifference < 0) {
-			int a = fromLetter;
-			for (int i = fromNumber - 1; i > toNumber; i--) {
-				a++;
-				for (a; a < toLetter; a++) {
-					if (board[i][a].piece != nullptr) {
-						std::cout << "There's a piece blocking your move!" << std::endl;
-						return false;
-					}
-					break;
-				}
-			}
-		}
-		else if (rowDifference < 0 && columnDifference > 0) {
-			int a = fromNumber;
-			for (int i = fromNumber + 1; i < toNumber; i++) {
-				for (a; a > toLetter; a--) {
-					a--;
-					if (board[i][a].piece != nullptr) {
-						std::cout << "There's a piece blocking your move!" << std::endl;
-						return false;
-					}
-				}
-			}
-		}
-		else if (rowDifference == 0 && columnDifference > 0) {
-			for (int i = fromLetter - 1; i >= toLetter; i--) {
-				if (board[fromNumber][i].piece != nullptr) {
-					std::cout << "There's a piece blocking your move!" << std::endl;
-					return false;
-				}
-			}
-		}
-		else if (rowDifference == 0 && columnDifference < 0) {
-			for (int i = fromLetter + 1; i < toLetter; i++) {
-				if (board[fromNumber][i].piece != nullptr) {
-					std::cout << "There's a piece blocking your move!" << std::endl;
-					return false;
-				}
-			}
-		}
-		else if (rowDifference > 0 && columnDifference == 0) {
-			for (int i = fromNumber - 1; i > toNumber; i--) {
-				if (board[i][fromLetter].piece != nullptr) {
-					std::cout << "There's a piece blocking your move!" << std::endl;
-					return false;
-				}
-			}
-		}
-		else if (rowDifference < 0 && columnDifference == 0) {
-			for (int i = fromNumber + 1; i < toNumber; i++) {
-				if (board[i][fromLetter].piece != nullptr) {
-					std::cout << "There's a piece blocking your move!" << std::endl;
-					return false;
-				}
-			}
-		}
-		if (board[toNumber][toLetter].piece != nullptr && board[toNumber][toLetter].piece->getPlayer() != currentPlayer) {
-			std::cout << "You have taken the enemy's " << board[toNumber][toLetter].piece->getName() << "!" << std::endl;
-			if (board[toNumber][toLetter].piece->getName() == "King") {
-				isKingDead = true;
-			}
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;	
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-		else {
-			std::cout << "Move successful!" << std::endl;
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-	}
-	else if (board[fromNumber][fromLetter].piece->getName() == "Knight") {
-		if (abs(rowDifference) * abs(columnDifference) != 2) {
-			std::cout << "Knights can move only L-shape" << std::endl;
-			return false;
-		}
-		if (board[toNumber][toLetter].piece != nullptr && board[toNumber][toLetter].piece->getPlayer() != currentPlayer) {
-			std::cout << "You have taken the enemy's " << board[toNumber][toLetter].piece->getName() << "!" << std::endl;
-			if (board[toNumber][toLetter].piece->getName() == "King") {
-				isKingDead = true;
-			}
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;	
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-		else {
-			std::cout << "Move successful!" << std::endl;
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-	}
-	else if (board[fromNumber][fromLetter].piece->getName() == "Bishop") {
-		if (abs(rowDifference) != abs(columnDifference)) {
-			std::cout << "Bishops can move only diagonally" << std::endl;
-			return false;
-		}
-		if (rowDifference > 0 && columnDifference > 0) {
-			int a = fromLetter;
-			for (int i = fromNumber - 1; i > toNumber; i--) {
-				for (a; a > toLetter; a--) {
-					a--;
-					if (board[i][a].piece != nullptr) {
-						std::cout << "There's a piece blocking your move!" << std::endl;
-						return false;
-					}
-					break;
-				}
-			}
-		}
-		else if (rowDifference < 0 && columnDifference < 0) {
-			int a = fromLetter;
-			for (int i = fromNumber + 1; i < toNumber; i++) {
-				for (a; a < toLetter; a++) {
-					a++;
-					if (board[i][a].piece != nullptr) {
-						std::cout << "There's a piece blocking your move!" << std::endl;
-						return false;
-					}
+    if (startRow != 6 && rowDifference >= 2) {
+        std::cout << "Pawns can move 2 squares forward only in their first move" << std::endl;
+        return false;
+    }
+    if (startRow == 6 && rowDifference > 2) {
+        std::cout << "Pawns can't move more than 2 squares forward on their first move." << std::endl;
+        return false;
+    }
+    if (rowDifference <= 0) {
+        std::cout << "Pawns can only move forward" << std::endl;
+        return false;
+    }
+    if (abs(columnDifference) > 1) {
+        std::cout << "Pawns can't move more than one column forward" << std::endl;
+        return false;
+    }
+    if (abs(columnDifference) == 1 && rowDifference == 1 && board[endRow][endColumn].piece == nullptr) {
+        std::cout << "There must be an enemy piece on that position for you to move there." << std::endl;
+        return false;
+    }
+    if (rowDifference == 1 && columnDifference == 0 && board[endRow][endColumn].piece != nullptr && !board[endRow][endColumn].piece->isWhitePiece()) {
+        std::cout << "An enemy piece is blocking your move!" << std::endl;
+        return false;
+    }
+    if (rowDifference == 1 && abs(columnDifference) == 1 && !board[endRow][endColumn].piece->isWhitePiece()) {
+        std::cout << "You have taken the enemy's " << board[endRow][endColumn].piece->getName() << "!" << std::endl;
+        if (board[endRow][endColumn].piece->getName() == "King") {
+            isKingDead = true;
+        }
+        return true;
+    }
+    std::cout << "Move successful!" << std::endl;
+    return true;
+}
+
+bool ChessGameLogic::validateBlackPawnMove(int startRow, int startColumn, int endRow, int endColumn, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool& isKingDead) {
+    int rowDifference = startRow - endRow;
+    int columnDifference = startColumn - endColumn;
+
+    if (startRow != 1 && rowDifference <= -2) {
+        std::cout << "Pawns can move 2 squares forward only in their first move" << std::endl;
+        return false;
+    }
+    if (startRow == 1 && rowDifference < -2) {
+        std::cout << "Pawns can't move more than 2 squares forward on their first move." << std::endl;
+        return false;
+    }
+    if (rowDifference >= 0) {
+        std::cout << "Pawns can only move forward" << std::endl;
+        return false;
+    }
+    if (abs(columnDifference) > 1) {
+        std::cout << "Pawns can't move more than one column forward" << std::endl;
+        return false;
+    }
+    if (abs(columnDifference) == 1 && rowDifference == -1 && board[endRow][endColumn].piece == nullptr) {
+        std::cout << "There must be an enemy piece on that position for you to move there." << std::endl;
+        return false;
+    }
+    if (rowDifference == -1 && columnDifference == 0 && board[endRow][endColumn].piece != nullptr && board[endRow][endColumn].piece->isWhitePiece()) {
+        std::cout << "An enemy piece is blocking your move!" << std::endl;
+        return false;
+    }
+    if (rowDifference == -1 && abs(columnDifference) == 1 && board[endRow][endColumn].piece->isWhitePiece()) {
+        std::cout << "You have taken the enemy's " << board[endRow][endColumn].piece->getName() << "!" << std::endl;
+        if (board[endRow][endColumn].piece->getName() == "King") {
+            isKingDead = true;
+        }
+        return true;
+    }
+    std::cout << "Move successful!" << std::endl;
+    return true;
+}
+
+bool ChessGameLogic::validatePawnMove(int startRow, int startColumn, int endRow, int endColumn, bool isWhiteToMove, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool& isKingDead) {
+    if (isWhiteToMove) {
+        return validateWhitePawnMove(startRow, startColumn, endRow, endColumn, board, isKingDead);
+    }
+    else {
+        return validateBlackPawnMove(startRow, startColumn, endRow, endColumn, board, isKingDead);
+    }
+}
+
+bool ChessGameLogic::validateKingMove(int startRow, int startColumn, int endRow, int endColumn, bool isWhiteToMove, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool& isKingDead) {
+    int rowDifference = abs(startRow - endRow);
+    int columnDifference = abs(startColumn - endColumn);
+
+    if (rowDifference > 1 || columnDifference > 1) {
+        std::cout << "Kings may only move one square" << std::endl;
+        return false;
+    }
+    if (board[endRow][endColumn].piece != nullptr && board[endRow][endColumn].piece->isWhitePiece() != isWhiteToMove) {
+        std::cout << "You have taken the enemy's " << board[endRow][endColumn].piece->getName() << "!" << std::endl;
+        if (board[endRow][endColumn].piece->getName() == "King") {
+            isKingDead = true;
+        }
+        return true;
+    }
+    std::cout << "Move successful!" << std::endl;
+    return true;
+}
+
+bool ChessGameLogic::validateQueenMove(int startRow, int startColumn, int endRow, int endColumn, bool isWhiteToMove, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool& isKingDead) {
+    int rowDifference = abs(startRow - endRow);
+    int columnDifference = abs(startColumn - endColumn);
+
+    if (rowDifference != columnDifference && rowDifference != 0 && columnDifference != 0) {
+        std::cout << "Queens can move like rooks and bishops only" << std::endl;
+        return false;
+    }
+    if (!isPathClear(startRow, startColumn, endRow, endColumn, board)) {
+        std::cout << "There's a piece blocking your move!" << std::endl;
+        return false;
+    }
+    if (board[endRow][endColumn].piece != nullptr && board[endRow][endColumn].piece->isWhitePiece() != isWhiteToMove) {
+        std::cout << "You have taken the enemy's " << board[endRow][endColumn].piece->getName() << "!" << std::endl;
+        if (board[endRow][endColumn].piece->getName() == "King") {
+            isKingDead = true;
+        }
+        return true;
+    }
+    std::cout << "Move successful!" << std::endl;
+    return true;
+}
+
+bool ChessGameLogic::validateKnightMove(int startRow, int startColumn, int endRow, int endColumn, bool isWhiteToMove, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool& isKingDead) {
+    int rowDifference = abs(startRow - endRow);
+    int columnDifference = abs(startColumn - endColumn);
+
+    if (rowDifference * columnDifference != 2) {
+        std::cout << "Knights can move only L-shape" << std::endl;
+        return false;
+    }
+    if (board[endRow][endColumn].piece != nullptr && board[endRow][endColumn].piece->isWhitePiece() != isWhiteToMove) {
+        std::cout << "You have taken the enemy's " << board[endRow][endColumn].piece->getName() << "!" << std::endl;
+        if (board[endRow][endColumn].piece->getName() == "King") {
+            isKingDead = true;
+        }
+        return true;
+    }
+    std::cout << "Move successful!" << std::endl;
+    return true;
+}
+
+bool ChessGameLogic::validateBishopMove(int startRow, int startColumn, int endRow, int endColumn, bool isWhiteToMove, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool& isKingDead) {
+    int rowDifference = abs(startRow - endRow);
+    int columnDifference = abs(startColumn - endColumn);
+
+    if (rowDifference != columnDifference) {
+        std::cout << "Bishops can move only diagonally" << std::endl;
+        return false;
+    }
+    if (!isPathClear(startRow, startColumn, endRow, endColumn, board)) {
+        std::cout << "There's a piece blocking your move!" << std::endl;
+        return false;
+    }
+    if (board[endRow][endColumn].piece != nullptr && board[endRow][endColumn].piece->isWhitePiece() != isWhiteToMove) {
+        std::cout << "You have taken the enemy's " << board[endRow][endColumn].piece->getName() << "!" << std::endl;
+        if (board[endRow][endColumn].piece->getName() == "King") {
+            isKingDead = true;
+        }
+        return true;
+    }
+    std::cout << "Move successful!" << std::endl;
+    return true;
+}
+
+bool ChessGameLogic::validateRookMove(int startRow, int startColumn, int endRow, int endColumn, bool isWhiteToMove, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool& isKingDead) {
+    int rowDifference = abs(startRow - endRow);
+    int columnDifference = abs(startColumn - endColumn);
+
+    if (rowDifference != 0 && columnDifference != 0) {
+        std::cout << "Rooks can move only horizontal or vertical" << std::endl;
+        return false;
+    }
+    if (!isPathClear(startRow, startColumn, endRow, endColumn, board)) {
+        std::cout << "There's a piece blocking your move!" << std::endl;
+        return false;
+    }
+    if (board[endRow][endColumn].piece != nullptr && board[endRow][endColumn].piece->isWhitePiece() != isWhiteToMove) {
+        std::cout << "You have taken the enemy's " << board[endRow][endColumn].piece->getName() << "!" << std::endl;
+        if (board[endRow][endColumn].piece->getName() == "King") {
+            isKingDead = true;
+        }
+        return true;
+    }
+    std::cout << "Move successful!" << std::endl;
+    return true;
+}
+
+bool ChessGameLogic::isPieceAbleToMove(const String& moveCommand, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool isWhiteToMove) {
+    int startSquareColumnIndex = getColumnIndexByName(moveCommand[START_SQUARE_COLUMN_POSITION_IN_COMMAND]);
+    int startSquareRowIndex = getRowIndexByName(moveCommand[START_SQUARE_ROW_POSITION_IN_COMMAND]);
+    int endSquareColumnIndex = getColumnIndexByName(moveCommand[END_SQUARE_COLUMN_POSITION_IN_COMMAND]);
+    int endSquareRowIndex = getRowIndexByName(moveCommand[END_SQUARE_ROW_POSITION_IN_COMMAND]);
+
+    if (!validatePieceToMoveColor(board, isWhiteToMove, startSquareColumnIndex, startSquareRowIndex, endSquareColumnIndex, endSquareRowIndex)) {
+        return false;
+    }
+
+    String pieceName = board[startSquareRowIndex][startSquareColumnIndex].piece->getName();
+    bool isKingDead = false;
+
+    if (pieceName == "Pawn") {
+        return validatePawnMove(startSquareRowIndex, startSquareColumnIndex, endSquareRowIndex, endSquareColumnIndex, isWhiteToMove, board, isKingDead);
+    }
+    else if (pieceName == "King") {
+        return validateKingMove(startSquareRowIndex, startSquareColumnIndex, endSquareRowIndex, endSquareColumnIndex, isWhiteToMove, board, isKingDead);
+    }
+    else if (pieceName == "Queen") {
+        return validateQueenMove(startSquareRowIndex, startSquareColumnIndex, endSquareRowIndex, endSquareColumnIndex, isWhiteToMove, board, isKingDead);
+    }
+    else if (pieceName == "Knight") {
+        return validateKnightMove(startSquareRowIndex, startSquareColumnIndex, endSquareRowIndex, endSquareColumnIndex, isWhiteToMove, board, isKingDead);
+    }
+    else if (pieceName == "Bishop") {
+        return validateBishopMove(startSquareRowIndex, startSquareColumnIndex, endSquareRowIndex, endSquareColumnIndex, isWhiteToMove, board, isKingDead);
+    }
+    else if (pieceName == "Rook") {
+        return validateRookMove(startSquareRowIndex, startSquareColumnIndex, endSquareRowIndex, endSquareColumnIndex, isWhiteToMove, board, isKingDead);
+    }
+    return false;
+}
+
+void ChessGameLogic::fillBoard() {
+    for (int i = 0; i < 28; i++) {
+        for (int j = 0; j < 65; j++) {
+            drawScreenBoardData[i][j] = ' ';
+        }
+    }
+}
+
+void ChessGameLogic::paintPatternOnDrawBoard() {
+    const int rowRanges[] = { 3, 6, 8, 12, 14, 18, 20, 24, 23, 27 };
+    const int columnRanges[] = { 7, 14, 20, 28, 34, 42, 48, 56, 55, 63 };
+
+    for (int i = 3; i < 27; i++) {
+        for (int j = 7; j < 63; j++) {
+            bool isDarkSquare = false;
+            for (int r = 0; r < 8; r += 2) {
+                if ((i > rowRanges[r] && i < rowRanges[r + 1]) &&
+                    (j > columnRanges[r] && j < columnRanges[r + 1])) {
+                    isDarkSquare = true;
                     break;
-				}
-			}
-		}
-		else if (rowDifference > 0 && columnDifference < 0) {
-		int a = fromLetter;
-		for (int i = fromNumber - 1; i > toNumber; i--) {
-			for (a; a < toLetter; a++) {
-				a++;
-				if (board[i][a].piece != nullptr) {
-					std::cout << "There's a piece blocking your move!" << std::endl;
-					return false;
-				}
-				break;
-			}
-		}
-		}
-		else if (rowDifference < 0 && columnDifference > 0) {
-		int a = fromLetter;
-		for (int i = fromNumber + 1; i < toNumber; i++) {
-			for (a; a > toLetter; a--) {
-				a--;
-				if (board[i][a].piece != nullptr) {
-					std::cout << "There's a piece blocking your move!" << std::endl;
-					return false;
-				}
-				break;
-			}
-		}
-	}
-		if (board[toNumber][toLetter].piece != nullptr && board[toNumber][toLetter].piece->getPlayer() != currentPlayer) {
-			std::cout << "You have taken the enemy's " << board[toNumber][toLetter].piece->getName() << "!" << std::endl;
-			if (board[toNumber][toLetter].piece->getName() == "King") {
-				isKingDead = true;
-			}
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;	
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-		else {
-			std::cout << "Move successful!" << std::endl;
-			board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;
-			board[fromNumber][fromLetter].piece = nullptr;
-			return true;
-		}
-	}
-	else if (board[fromNumber][fromLetter].piece->getName() == "Rook") {
-	if (rowDifference != 0 && columnDifference != 0) {
-		std::cout << "Rooks can move only horizontal or vertical" << std::endl;
-		return false;
-	}
-	if (rowDifference == 0 && columnDifference > 0) {
-		for (int i = fromLetter - 1; i > toLetter; i--) {
-			if (board[fromNumber][i].piece != nullptr) {
-				std::cout << "There's a piece blocking your move!" << std::endl;
-				return false;
-			}
-		}
-	}
-	else if (rowDifference == 0 && columnDifference < 0) {
-		for (int i = fromLetter + 1; i < toLetter; i++) {
-			if (board[fromNumber][i].piece != nullptr) {
-				std::cout << "There's a piece blocking your move!" << std::endl;
-				return false;
-			}
-		}
-	}
-	else if (rowDifference > 0 && columnDifference == 0) {
-		for (int i = fromNumber - 1; i > toNumber; i--) {
-			if (board[i][fromLetter].piece != nullptr) {
-				std::cout << "There's a piece blocking your move!" << std::endl;
-				return false;
-			}
-		}
-	}
-	else if (rowDifference < 0 && columnDifference == 0) {
-		for (int i = fromNumber + 1; i < toNumber; i++) {
-			if (board[i][fromLetter].piece != nullptr) {
-				std::cout << "There's a piece blocking your move!" << std::endl;
-				return false;
-			}
-		}
-	}
-	if (board[toNumber][toLetter].piece != nullptr && board[toNumber][toLetter].piece->getPlayer() != currentPlayer) {
-		std::cout << "You have taken the enemy's " << board[toNumber][toLetter].piece->getName() << "!" << std::endl;
-		if (board[toNumber][toLetter].piece->getName() == "King") {
-			isKingDead = true;
-		}
-		board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;	
-		board[fromNumber][fromLetter].piece = nullptr;
-		return true;
-	}
-	else {
-		std::cout << "Move successful!" << std::endl;
-		board[toNumber][toLetter].piece = board[fromNumber][fromLetter].piece;
-		board[fromNumber][fromLetter].piece = nullptr;
-		return true;
-	}
-	}
-	else {
-	return false;
-	}
-}
-/*
-void Gameplay::undo(String move,Board board[8][8]) {
-	
-}
-*/
-
-void Gameplay::FillBoard()
-{ 
-	for (int i = 0; i < 28; i++){
-		for (int j = 0; j < 65; j++){
-			gameField[i][j] = ' ';
-		}
-	}
-}
-void Gameplay::PaintBoard()
-{
-	for (int i = 3; i < 27; i++){
-		for (int j = 7; j < 63; j++){
-			if ((((i > 2 && i < 6) || (i > 8 && i < 12) || (i > 14 && i < 18) || (i > 20 && i < 24))
-				&& ((j > 6 && j < 14) || (j > 20 && j < 28) || (j > 34 && j < 42) || (j > 48 && j < 56))) ||
-				(((i > 5 && i < 9) || (i > 11 && i < 15) || (i > 17 && i < 21) || (i > 23 && i < 27))
-					&& ((j > 13 && j < 21) || (j > 27 && j < 35) || (j > 41 && j < 49) || (j > 55 && j < 63))))
-				gameField[i][j] = 219;
-		}
-	}
-}
-void Gameplay::PrintBorders() {
-	for (int i = 3; i < 27; i++){
-		gameField[i][5] = 186;
-		gameField[i][64] = 186;
-	}
-	gameField[2][5] = 201;
-	gameField[2][64] = 187;
-	gameField[27][64] = 188;
-	gameField[27][5] = 200;
-	for (int j = 6; j < 64; j++){
-		gameField[2][j] = 205;
-		gameField[27][j] = 205;
-	}
-}
-void Gameplay::PrintNumbering()
-{
-	int k = 0;
-
-	//column nameing
-	for (int j = 10; j < 63; j += 7){
-		gameField[1][j] = 65 + k;
-		k++;
-
-	}
-	//line numbering
-	for (int i = 4; i < 27; i += 3){{
-			gameField[i][3] = 41 + k;
-			k++;
-		}
-	}
-}
-void Gameplay::FigureSpaceCleaning()
-{
-	//freeing space for figures
-	for (int i = 4; i < 27; i += 3){
-		for (int j = 10; j < 63; j += 7){
-			gameField[i][j - 1] = '  ';
-			gameField[i][j] = '  ';
-			gameField[i][j + 1] = '  ';
-		}
-	}
+                }
+            }
+            if (isDarkSquare) {
+                drawScreenBoardData[i][j] = 219;
+            }
+        }
+    }
 }
 
-
-void Gameplay::PlacePieces(Board board[8][8])
-{
-	//Taking the coordinats of where pieces will be placed
-	const int R1 = 4; 				const int C1 = 10;
-	const int R2 = 7;				const int C2 = 17;
-	const int R3 = 10;				const int C3 = 24;
-	const int R4 = 13;				const int C4 = 31;
-	const int R5 = 16;				const int C5 = 38;
-	const int R6 = 19;				const int C6 = 45;
-	const int R7 = 22;				const int C7 = 52;
-	const int R8 = 25;				const int C8 = 59;
-
-	int row, col;
-
-	for (int i = 0; i < 8; i++){
-		if (i == 0) { 
-			row = R1;
-		}
-		else if (i == 1) {
-			row = R2; 
-		}
-		else if (i == 2) {
-			row = R3;
-		}
-		else if (i == 3) {
-			row = R4;
-		}
-		else if (i == 4) {
-			row = R5;
-		}
-		else if (i == 5) {
-			row = R6;
-		}
-		else if (i == 6) {
-			row = R7; 
-		}
-		else if (i == 7) {
-			row = R8; 
-		}
-		for (int j = 0; j < 8; j++){
-			if (j == 0) { 
-				col = C1; 
-			}
-			else if (j == 1) {
-				col = C2;
-			}
-			else if (j == 2) { 
-				col = C3;
-			}
-			else if (j == 3) { 
-				col = C4;
-			}
-			else if (j == 4) { 
-				col = C5;
-			}
-			else if (j == 5) {
-				col = C6;
-			}
-			else if (j == 6) {
-				col = C7;
-			}
-			else if (j == 7) {
-				col = C8;
-			}
-
-			if (board[i][j].piece == nullptr) {
-				gameField[row][col] = ' ';
-			}
-			else if (board[i][j].piece->getName() == "Pawn" && board[i][j].piece->getPlayer() == 1) {
-				gameField[row][col] = 'P';
-			}
-			else if (board[i][j].piece->getName() == "King" && board[i][j].piece->getPlayer() == 1) {
-				gameField[row][col] = 'K';
-			}
-			else if (board[i][j].piece->getName() == "Queen" && board[i][j].piece->getPlayer() == 1) {
-				gameField[row][col] = 'Q';
-			}
-			else if (board[i][j].piece->getName() == "Rook" && board[i][j].piece->getPlayer() == 1) {
-				gameField[row][col] = 'R';
-			}
-			else if (board[i][j].piece->getName() == "Knight" && board[i][j].piece->getPlayer() == 1) {
-				gameField[row][col] = 'N';
-			}
-			else if (board[i][j].piece->getName() == "Bishop" && board[i][j].piece->getPlayer() == 1) {
-				gameField[row][col] = 'B';
-			}
-			else if (board[i][j].piece->getName() == "Pawn" && board[i][j].piece->getPlayer() == 2) {
-				gameField[row][col] = 'p';
-			}
-			else if (board[i][j].piece->getName() == "King" && board[i][j].piece->getPlayer() == 2) {
-				gameField[row][col] = 'k';
-			}
-			else if (board[i][j].piece->getName() == "Queen" && board[i][j].piece->getPlayer() == 2) {
-				gameField[row][col] = 'q';
-			}
-			else if (board[i][j].piece->getName() == "Rook" && board[i][j].piece->getPlayer() == 2) {
-				gameField[row][col] = 'r';
-			}
-			else if (board[i][j].piece->getName() == "Knight" && board[i][j].piece->getPlayer() == 2) {
-				gameField[row][col] = 'n';
-			}
-			else if (board[i][j].piece->getName() == "Bishop" && board[i][j].piece->getPlayer() == 2) {
-				gameField[row][col] = 'b';
-			}
-		}
-	}
-	//printing the board
-	for (int i = 0; i < 28; i++){
-		for (int j = 0; j < 65; j++){
-			std::cout << gameField[i][j];
-		}
-		std::cout << std::endl;
-	}
-}
-void Gameplay::PrintBoard(Board board[8][8])
-{
-	FillBoard();
-	PrintNumbering();
-	PaintBoard();
-	FigureSpaceCleaning();
-	PrintBorders();
-	PlacePieces(board);
+void ChessGameLogic::paintBordersOnDrawBoard() {
+    for (int i = 3; i < 27; i++) {
+        drawScreenBoardData[i][5] = 186;
+        drawScreenBoardData[i][64] = 186;
+    }
+    drawScreenBoardData[2][5] = 201;
+    drawScreenBoardData[2][64] = 187;
+    drawScreenBoardData[27][64] = 188;
+    drawScreenBoardData[27][5] = 200;
+    for (int j = 6; j < 64; j++) {
+        drawScreenBoardData[2][j] = 205;
+        drawScreenBoardData[27][j] = 205;
+    }
 }
 
-void Gameplay::PlayGame()
-{
-	Pawn wP1("Pawn", 1);
-	Pawn wP2("Pawn", 1);
-	Pawn wP3("Pawn", 1);
-	Pawn wP4("Pawn", 1);
-	Pawn wP5("Pawn", 1);
-	Pawn wP6("Pawn", 1);
-	Pawn wP7("Pawn", 1);
-	Pawn wP8("Pawn", 1);
-	Rook wR1("Rook", 1);
-	Rook wR2("Rook", 1);
-	Knight wN1("Knight", 1);
-	Knight wN2("Knight", 1);
-	Bishop wB1("Bishop", 1);
-	Bishop wB2("Bishop", 1);
-	Queen wQ("Queen", 1);
-	King wK("King", 1);
+void ChessGameLogic::paintColumnAndRowNamesOnDrawBoard() {
+    int k = 0;
 
-	Pawn bP1("Pawn", 2);
-	Pawn bP2("Pawn", 2);
-	Pawn bP3("Pawn", 2);
-	Pawn bP4("Pawn", 2);
-	Pawn bP5("Pawn", 2);
-	Pawn bP6("Pawn", 2);
-	Pawn bP7("Pawn", 2);
-	Pawn bP8("Pawn", 2);
-	Rook bR1("Rook", 2);
-	Rook bR2("Rook", 2);
-	Knight bN1("Knight", 2);
-	Knight bN2("Knight", 2);
-	Bishop bB1("Bishop", 2);
-	Bishop bB2("Bishop", 2);
-	Queen bQ("Queen", 2);
-	King bK("King", 2);
+    for (int j = 10; j < 63; j += 7) {
+        drawScreenBoardData[1][j] = 65 + k;
+        k++;
+    }
+    for (int i = 4; i < 27; i += 3) {
+        drawScreenBoardData[i][3] = 41 + k;
+        k++;
+    }
+}
 
-	board[7][0].piece = &wR1;
-	board[7][1].piece = &wN1;
-	board[7][2].piece = &wB1;
-	board[7][3].piece = &wQ;
-	board[7][4].piece = &wK;
-	board[7][5].piece = &wB2;
-	board[7][6].piece = &wN2;
-	board[7][7].piece = &wR2;
+void ChessGameLogic::cleanSpaceForPiecesOnDrawBoard() {
+    for (int i = 4; i < 27; i += 3) {
+        for (int j = 10; j < 63; j += 7) {
+            drawScreenBoardData[i][j - 1] = ' ';
+            drawScreenBoardData[i][j] = ' ';
+            drawScreenBoardData[i][j + 1] = ' ';
+        }
+    }
+}
 
-	board[6][0].piece = &wP1;
-	board[6][1].piece = &wP2;
-	board[6][2].piece = &wP3;
-	board[6][3].piece = &wP4;
-	board[6][4].piece = &wP5;
-	board[6][5].piece = &wP6;
-	board[6][6].piece = &wP7;
-	board[6][7].piece = &wP8;
+void ChessGameLogic::paintPiecesOnDrawBoard(SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE]) {
+    const int rowIndexesOnScreen[] = { 4, 7, 10, 13, 16, 19, 22, 25 };
+    const int columnIndexesOnScreen[] = { 10, 17, 24, 31, 38, 45, 52, 59 };
 
-	board[0][0].piece = &bR1;
-	board[0][1].piece = &bN1;
-	board[0][2].piece = &bB1;
-	board[0][3].piece = &bQ;
-	board[0][4].piece = &bK;
-	board[0][5].piece = &bB2;
-	board[0][6].piece = &bN2;
-	board[0][7].piece = &bR2;
+    for (int i = 0; i < CHESS_BOARD_SIZE; i++) {
+        for (int j = 0; j < CHESS_BOARD_SIZE; j++) {
+            char pieceNameOnScreen = ' ';
+            if (board[i][j].piece) {
+                pieceNameOnScreen = board[i][j].piece->getName()[0];
+                if (board[i][j].piece->getName() == "Knight") {
+                    pieceNameOnScreen = 'N';
+                }
+                if (!board[i][j].piece->isWhitePiece()) {
+                    makeLowerCase(pieceNameOnScreen);
+                }
+            }
+            drawScreenBoardData[rowIndexesOnScreen[i]][columnIndexesOnScreen[j]] = pieceNameOnScreen;
+        }
+    }
+}
 
-	board[1][0].piece = &bP1;
-	board[1][1].piece = &bP2;
-	board[1][2].piece = &bP3;
-	board[1][3].piece = &bP4;
-	board[1][4].piece = &bP5;
-	board[1][5].piece = &bP6;
-	board[1][6].piece = &bP7;
-	board[1][7].piece = &bP8;
+void ChessGameLogic::printDrawBoardOnScreen(SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE]) {
+    fillBoard();
+    paintColumnAndRowNamesOnDrawBoard();
+    paintPatternOnDrawBoard();
+    cleanSpaceForPiecesOnDrawBoard();
+    paintBordersOnDrawBoard();
+    paintPiecesOnDrawBoard(board);
 
-	int currPlayer = 2; // since we change the current player in the while loop we declare it as 2 so it can become 1
-	String comand;
+    for (int i = 0; i < 28; i++) {
+        for (int j = 0; j < 65; j++) {
+            std::cout << drawScreenBoardData[i][j];
+        }
+        std::cout << std::endl;
+    }
+}
 
-	while (true)
-	{
-		//after every valid move we will change Current player
-		if (currPlayer == 1) {
-			currPlayer = 2;
-			//std::cout << "from 1 to 2";
-		}
-		else {
-			currPlayer = 1;
-			//std::cout << "from 2 to 1";
-		}
+void ChessGameLogic::spawnWhitePiecesOnBoard() {
+    Pawn* whitePawns[8] = { new Pawn("Pawn", 1), new Pawn("Pawn", 1), new Pawn("Pawn", 1), new Pawn("Pawn", 1),
+                           new Pawn("Pawn", 1), new Pawn("Pawn", 1), new Pawn("Pawn", 1), new Pawn("Pawn", 1) };
+    Rook* whiteRooks[2] = { new Rook("Rook", 1), new Rook("Rook", 1) };
+    Knight* whiteKnights[2] = { new Knight("Knight", 1), new Knight("Knight", 1) };
+    Bishop* whiteBishops[2] = { new Bishop("Bishop", 1), new Bishop("Bishop", 1) };
+    Queen* whiteQueen = new Queen("Queen", 1);
+    King* whiteKing = new King("King", 1);
 
-		PrintBoard(board);
+    board[7][0].piece = whiteRooks[0];
+    board[7][1].piece = whiteKnights[0];
+    board[7][2].piece = whiteBishops[0];
+    board[7][3].piece = whiteQueen;
+    board[7][4].piece = whiteKing;
+    board[7][5].piece = whiteBishops[1];
+    board[7][6].piece = whiteKnights[1];
+    board[7][7].piece = whiteRooks[1];
 
-		std::cout << std::endl;
-		std::cout << "It is Player " << currPlayer << " turn. Please enter your command:" << std::endl;
+    for (int i = 0; i < 8; i++) {
+        board[6][i].piece = whitePawns[i];
+    }
+}
 
-		std::cin >> comand;
-		if (comand == "help") {
-			std::cout << "-----------------Help menu-----------------" << std::endl;
-			std::cout << "Possible commands: " << std::endl;
-			std::cout << "undo -> returns the game to the state before the last move." << std::endl;
-			std::cout << "exit -> exits the game." << std::endl;
-			std::cout << "move x1y1 x2y2 -> if possible, move the figure from position (x1, y1) to position (x2, y2)" << std::endl;
-			std::cout << "example move command ---> move d2 d4" << std::endl;
-			if (currPlayer == 1) {
-				currPlayer = 2;
-			}
-			else {
-				currPlayer = 1;
-			}
-		}
-		else if (comand == "undo") {
-			
-		}
-		else if (comand == "exit") {
-			break;
-		}
-		else {
-			while (!(isMoveCommandValid(comand)))
-			{
-				std::cin >> comand;
-			}
-			while (!(canMove(comand, board, currPlayer)) || (!(isMoveCommandValid(comand))))
-			{
-				std::cout << "Please enter your move again!" << std::endl;
-				std::cin >> comand;
-			}
-		}
-		if (isKingDead) {
-			std::cout << "Player " << currPlayer << " wins!" << std::endl;
-			break;
-		}
-	}
+void ChessGameLogic::spawnBlackPiecesOnBoard() {
+    Pawn* blackPawns[8] = { new Pawn("Pawn", 2), new Pawn("Pawn", 2), new Pawn("Pawn", 2), new Pawn("Pawn", 2),
+                           new Pawn("Pawn", 2), new Pawn("Pawn", 2), new Pawn("Pawn", 2), new Pawn("Pawn", 2) };
+    Rook* blackRooks[2] = { new Rook("Rook", 2), new Rook("Rook", 2) };
+    Knight* blackKnights[2] = { new Knight("Knight", 2), new Knight("Knight", 2) };
+    Bishop* blackBishops[2] = { new Bishop("Bishop", 2), new Bishop("Bishop", 2) };
+    Queen* blackQueen = new Queen("Queen", 2);
+    King* blackKing = new King("King", 2);
+
+    board[0][0].piece = blackRooks[0];
+    board[0][1].piece = blackKnights[0];
+    board[0][2].piece = blackBishops[0];
+    board[0][3].piece = blackQueen;
+    board[0][4].piece = blackKing;
+    board[0][5].piece = blackBishops[1];
+    board[0][6].piece = blackKnights[1];
+    board[0][7].piece = blackRooks[1];
+
+    for (int i = 0; i < 8; i++) {
+        board[1][i].piece = blackPawns[i];
+    }
+}
+
+void ChessGameLogic::printHelpText() const {
+    std::cout << "-----------------Help menu-----------------" << std::endl;
+    std::cout << "Possible commands: " << std::endl;
+    std::cout << "undo -> returns the game to the state before the last move." << std::endl;
+    std::cout << "exit -> exits the game." << std::endl;
+    std::cout << "move x1y1 x2y2 -> if possible, move the figure from position (x1, y1) to position (x2, y2)" << std::endl;
+    std::cout << "example move command ---> move d2 d4" << std::endl;
+}
+
+void ChessGameLogic::movePieceOnBoard(const String& moveCommand, SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE]) {
+    int startSquareColumnIndex = getColumnIndexByName(moveCommand[START_SQUARE_COLUMN_POSITION_IN_COMMAND]);
+    int startSquareRowIndex = getRowIndexByName(moveCommand[START_SQUARE_ROW_POSITION_IN_COMMAND]);
+    int endSquareColumnIndex = getColumnIndexByName(moveCommand[END_SQUARE_COLUMN_POSITION_IN_COMMAND]);
+    int endSquareRowIndex = getRowIndexByName(moveCommand[END_SQUARE_ROW_POSITION_IN_COMMAND]);
+
+    board[endSquareRowIndex][endSquareColumnIndex].piece = board[startSquareRowIndex][startSquareColumnIndex].piece;
+    board[startSquareRowIndex][startSquareColumnIndex].piece = nullptr;
+}
+
+bool ChessGameLogic::processCommandFromUser(SquareOfBoard board[CHESS_BOARD_SIZE][CHESS_BOARD_SIZE], bool isWhiteToMove) {
+    String command;
+    std::cout << std::endl << "It is Player " << (isWhiteToMove ? 1 : 2) << " turn. Please enter your command:" << std::endl;
+    std::cin >> command;
+
+    if (command == "help") {
+        printHelpText();
+    }
+    else if (command == "exit") {
+        return false;
+    }
+    else {
+        while (!isMoveCommandValid(command)) {
+            std::cin >> command;
+        }
+        while (!isPieceAbleToMove(command, board, isWhiteToMove) || !isMoveCommandValid(command)) {
+            std::cout << "Please enter your move again!" << std::endl;
+            std::cin >> command;
+        }
+        movePieceOnBoard(command, board);
+    }
+
+    if (isKingDead) {
+        std::cout << "Player " << (isWhiteToMove ? 1 : 2) << " wins!" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+void ChessGameLogic::playGame() {
+    spawnWhitePiecesOnBoard();
+    spawnBlackPiecesOnBoard();
+
+    bool isWhiteToMove = true;
+    bool foundWinner = false;
+
+    while (!foundWinner) {
+        printDrawBoardOnScreen(board);
+        foundWinner = processCommandFromUser(board, isWhiteToMove);
+        isWhiteToMove = !isWhiteToMove;
+    }
 }

@@ -4,5 +4,5 @@
 class Rook :public Piece {
 public:
 	Rook() :Piece() {}
-	Rook(const String _name, const int _player) :Piece(_name, _player) {}
+	Rook(const String name, const bool isWhite) :Piece(name, isWhite) {}
 };

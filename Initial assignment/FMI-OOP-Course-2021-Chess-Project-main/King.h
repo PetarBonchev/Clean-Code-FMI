@@ -4,5 +4,5 @@
 class King :public Piece {
 public:
 	King() :Piece() {}
-	King(const String _name, const int _player) :Piece(_name,  _player) {}
+	King(const String name, const bool isWhitePlayer) :Piece(name,  isWhitePlayer) {}
 };

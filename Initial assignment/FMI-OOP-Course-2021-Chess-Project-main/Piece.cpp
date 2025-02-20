@@ -3,23 +3,23 @@
 Piece::Piece()
 {
 	name = "";
-	player = 0;
+	isWhite = 0;
 }
 
-Piece::Piece(const String _name,const int _player)
+Piece::Piece(const String name, const bool isWhite)
 {
-	name = _name;
-	player = _player;
+	this->name = name;
+	this->isWhite = isWhite;
 }
 
-void Piece::setName(const String _name)
+void Piece::setName(const String name)
 {
-	name = _name;
+	this->name = name;
 }
 
-void Piece::setPlayer(const int _player)
+void Piece::setIsWhite(const bool isWhite)
 {
-	player = _player;
+	this->isWhite = isWhite;
 }
 
 String Piece:: getName() const
@@ -27,7 +27,7 @@ String Piece:: getName() const
 	return name;
 }
 
-int Piece::getPlayer() const
+bool Piece::isWhitePiece() const
 {
-	return player;
+	return isWhite;
 }

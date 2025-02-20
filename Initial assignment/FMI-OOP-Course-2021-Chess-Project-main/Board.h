@@ -6,9 +6,7 @@
 #include "Queen.h"
 #include "King.h"
 
-class Board {
+class SquareOfBoard {
 public:
-	Piece* piece; //piece[32]
-	Board();
-	~Board();
+	Piece* piece = nullptr;
 };
