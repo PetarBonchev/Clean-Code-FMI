@@ -13,10 +13,18 @@ public class CommandReceiver {
 
     public void executeUserCommands() {
         while (true) {
+            displayCommandOptions();
             String userCommand = this.scanner.nextLine();
             DayLog details = this.userInput.getDetails(userCommand);
             Command currentCommand = this.commandFactory.create(userCommand, details);
-            currentCommand.execute();
+            if(currentCommand != null) {
+                currentCommand.execute();
+            }
         }
+    }
+
+    private void displayCommandOptions() {
+        System.out.println("1.Drink water");
+        System.out.println("2.Check water");
     }
 }
