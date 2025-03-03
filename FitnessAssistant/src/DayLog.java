@@ -31,4 +31,16 @@ public class DayLog {
         dayLog.data.addAll(Arrays.asList(tokens).subList(1, tokens.length));
         return dayLog;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        DayLog other = (DayLog) obj;
+        return this.date.equals(other.date) && this.data.equals(other.data);
+    }
 }
