@@ -13,8 +13,10 @@ public class UserInputGatherer {
         switch (userCommand) {
             case "1":
                 commandDetails = getDrinkRegistrationDetails();
+                break;
             case "2":
                 commandDetails = getDrinkDisplayDetails();
+                break;
         }
         return commandDetails;
     }

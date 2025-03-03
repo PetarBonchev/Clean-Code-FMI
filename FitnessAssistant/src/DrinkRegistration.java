@@ -6,6 +6,7 @@ public class DrinkRegistration extends Command {
 
     @Override
     public void execute() {
-
+        context.logFileRepository.saveLog(context.fileNames.waterDataFile, details);
+        context.feedbackDisplay.notifySuccessfulSave();
     }
 }

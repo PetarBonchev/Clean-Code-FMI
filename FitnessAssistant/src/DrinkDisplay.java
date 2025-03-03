@@ -6,6 +6,7 @@ public class DrinkDisplay extends Command {
 
     @Override
     public void execute() {
-
+        DayLog requestedDayData = context.logFileRepository.getDayLog(context.fileNames.waterDataFile, details.date);
+        context.feedbackDisplay.outputWaterLog(requestedDayData);
     }
 }
