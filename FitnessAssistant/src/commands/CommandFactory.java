@@ -6,7 +6,9 @@ public class CommandFactory {
         return switch (commandIndex) {
             case 1 -> new DrinkWaterCommand();
             case 2 -> new CheckWaterCommand();
-            case 3 -> new ExitCommand();
+            case 3 -> new CreateFoodCommand();
+            case 4 -> new ViewFoodsCommand();
+            case 5 -> new ExitCommand();
             default -> throw new IllegalArgumentException("Invalid command.");
         };
     }

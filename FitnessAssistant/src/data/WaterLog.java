@@ -1,7 +1,6 @@
 package data;
 
 import general.Main;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -37,18 +36,6 @@ public class WaterLog extends DataVariant {
             message.append(amount).append("ml").append(System.lineSeparator());
         }
         return message.toString();
-    }
-
-    @Override
-    public String getDataAsTokenLine() {
-        StringBuilder tokenLine = new StringBuilder();
-        tokenLine.append(date.toString().length()).append(TokenTable.TOKEN_SIZE_CONTENT_SEPARATOR);
-        tokenLine.append(date.format(Main.DATE_FORMATTER)).append(" ");
-        for(Integer amount: drunkAmounts) {
-            tokenLine.append(String.valueOf(amount).length());
-            tokenLine.append(TokenTable.TOKEN_SIZE_CONTENT_SEPARATOR).append(amount).append(" ");
-        }
-        return tokenLine.toString();
     }
 
     @Override

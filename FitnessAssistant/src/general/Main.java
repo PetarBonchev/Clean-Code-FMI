@@ -23,6 +23,7 @@ public class Main {
                 Command command = commandFactory.createCommand(getUserCommand());
                 commandExecutor.addCommand(command);
                 commandExecutor.executeCurrentCommand();
+                System.out.print(System.lineSeparator());
             } catch (BreakLoopException _) {
                 System.out.println("Program exited.");
                 break;

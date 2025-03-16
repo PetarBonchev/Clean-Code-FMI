@@ -8,7 +8,15 @@ abstract class DataVariant {
 
     public abstract String getDataAsMessage();
 
-    public abstract String getDataAsTokenLine();
+    public String getDataAsTokenLine() {
+        ArrayList<String> tokens = getData();
+        StringBuilder tokenLine = new StringBuilder();
+        for(String token : tokens) {
+            tokenLine.append(token.length()).append(TokenTable.TOKEN_SIZE_CONTENT_SEPARATOR);
+            tokenLine.append(token).append(" ");
+        }
+        return tokenLine.toString();
+    }
 
     public abstract ArrayList<String> getData();
 }
