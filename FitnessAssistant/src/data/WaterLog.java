@@ -13,7 +13,11 @@ public class WaterLog extends DataVariant {
         if (contextLine.isEmpty()) {
             throw new IllegalArgumentException("WaterLog must have a valid date.");
         }
-        this.date = LocalDate.parse(contextLine.getFirst(), Main.DATE_FORMATTER);
+        try {
+            this.date = LocalDate.parse(contextLine.getFirst(), Main.DATE_FORMATTER);
+        } catch (Exception _) {
+            throw new  IllegalArgumentException("WaterLog must have a valid date.");
+        }
         this.drunkAmounts = new ArrayList<>();
         for(int i=1;i<contextLine.size();i++) {
             drunkAmounts.add(Integer.parseInt(contextLine.get(i)));

@@ -20,8 +20,13 @@ public class CommandExecutor {
     public void executeCurrentCommand() {
         Command currentCommand = commands.getFirst();
         commands.removeFirst();
-        TokenTable commandData = Database.load(currentCommand.relevantDataFilename);
-        TokenTable modifiedData = currentCommand.execute(commandData);
-        Database.save(currentCommand.relevantDataFilename, modifiedData);
+        ArrayList<TokenTable> commandData = new ArrayList<>();
+        for(String filename : currentCommand.relevantDataFilenames) {
+            commandData.add(Database.load(filename));
+        }
+        ArrayList<TokenTable> modifiedData = currentCommand.execute(commandData);
+        for (int i = 0; i < modifiedData.size(); i++) {
+            Database.save(currentCommand.relevantDataFilenames[i], modifiedData.get(i));
+        }
     }
 }

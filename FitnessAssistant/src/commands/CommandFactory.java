@@ -8,7 +8,9 @@ public class CommandFactory {
             case 2 -> new CheckWaterCommand();
             case 3 -> new CreateFoodCommand();
             case 4 -> new ViewFoodsCommand();
-            case 5 -> new ExitCommand();
+            case 5 -> new EatFoodCommand();
+            case 6 -> new ViewLogFoodCommand();
+            case 7 -> new ExitCommand();
             default -> throw new IllegalArgumentException("Invalid command.");
         };
     }

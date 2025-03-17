@@ -10,15 +10,17 @@ import java.util.Scanner;
 public class CreateFoodCommand extends Command{
 
     public CreateFoodCommand() {
-        relevantDataFilename = AvailableFilenames.foodTypeData;
+        this.relevantDataFilenames = new String[] {AvailableFilenames.foodTypeData};
     }
 
     @Override
-    public TokenTable execute(TokenTable currentData) {
-        ArrayList<FoodType> foodData = FoodType.convertTableToFoodTypes(currentData);
+    public ArrayList<TokenTable> execute(ArrayList<TokenTable> currentData) {
+        ArrayList<FoodType> foodData = FoodType.convertTableToFoodTypes(currentData.getFirst());
         FoodType newFoodType = getUserInput();
         foodData.add(newFoodType);
-        return FoodType.convertFoodTypesToTable(foodData);
+        ArrayList<TokenTable> modifiedTables = new ArrayList<>();
+        modifiedTables.add(FoodType.convertFoodTypesToTable(foodData));
+        return modifiedTables;
     }
 
     private FoodType getUserInput() {

@@ -2,8 +2,10 @@ package commands;
 
 import data.TokenTable;
 
-public abstract class Command {
-    public String relevantDataFilename = "";
+import java.util.ArrayList;
 
-    public abstract TokenTable execute(TokenTable currentData);
+public abstract class Command {
+    public String[] relevantDataFilenames;
+
+    public abstract ArrayList<TokenTable> execute(ArrayList<TokenTable> currentData);
 }

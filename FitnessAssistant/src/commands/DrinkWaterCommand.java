@@ -10,15 +10,17 @@ import java.util.Scanner;
 public class DrinkWaterCommand extends Command {
 
     public DrinkWaterCommand() {
-        this.relevantDataFilename = AvailableFilenames.waterData;
+        this.relevantDataFilenames = new String[] {AvailableFilenames.waterData};
     }
 
     @Override
-    public TokenTable execute(TokenTable currentData) {
-        ArrayList<WaterLog> waterData = WaterLog.convertTableToWaterLogs(currentData);
+    public ArrayList<TokenTable> execute(ArrayList<TokenTable> currentData) {
+        ArrayList<WaterLog> waterData = WaterLog.convertTableToWaterLogs(currentData.getFirst());
         WaterLog newLog = getUserInput();
         ArrayList<WaterLog> modifiedWaterData = modifyWaterData(waterData, newLog);
-        return  WaterLog.convertWaterLogsToTable(modifiedWaterData);
+        ArrayList<TokenTable> modifiedTables = new ArrayList<>();
+        modifiedTables.add(WaterLog.convertWaterLogsToTable(modifiedWaterData));
+        return modifiedTables;
     }
 
     private WaterLog getUserInput() {

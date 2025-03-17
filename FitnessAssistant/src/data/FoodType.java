@@ -91,6 +91,17 @@ public class FoodType extends DataVariant {
         return foodTypeData;
     }
 
+    public String getMessageWithCustomWeight(double weight) {
+        double proportion = weight / servingSize;
+        return weight + "g X " +
+                foodName + " (Total: " +
+                weight + "g; " +
+                proportion * calories + "kcal; " +
+                proportion * carbs + "g, " +
+                proportion * fat + "g, " +
+                proportion * protein + "g)";
+    }
+
     public static ArrayList<FoodType> convertTableToFoodTypes(TokenTable tokenTable) {
         ArrayList<FoodType> foodData = new ArrayList<>();
 

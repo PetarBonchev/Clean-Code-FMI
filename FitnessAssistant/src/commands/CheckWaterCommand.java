@@ -12,12 +12,12 @@ import java.util.Scanner;
 public class CheckWaterCommand extends Command{
 
     public CheckWaterCommand() {
-        this.relevantDataFilename = AvailableFilenames.waterData;
+        this.relevantDataFilenames = new String[] {AvailableFilenames.waterData};
     }
 
     @Override
-    public TokenTable execute(TokenTable currentData) {
-        ArrayList<WaterLog> waterData = WaterLog.convertTableToWaterLogs(currentData);
+    public ArrayList<TokenTable> execute(ArrayList<TokenTable> currentData) {
+        ArrayList<WaterLog> waterData = WaterLog.convertTableToWaterLogs(currentData.getFirst());
         LocalDate userDate = getUserDate();
         int desiredWaterDataIndex = getDesiredWaterDataIndex(waterData, userDate);
         if(desiredWaterDataIndex == -1) {

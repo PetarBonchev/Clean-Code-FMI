@@ -2,4 +2,6 @@
 1:2 10:CheckWater
 1:3 11:Create Food
 1:4 14:View All Foods
-1:5 4:Exit
+1:5 8:Log Food
+1:6 17:View Foods Logged
+1:7 4:Exit
